@@ -1,24 +1,17 @@
-import os
 import time
 import random
-from dotenv import load_dotenv
+from threading import Thread
 from cantex_sdk import Client
 import config
-
-load_dotenv()
-
-client = Client(
-    intent_key=os.getenv("TRADING_KEY")
-)
+import accounts
 
 running = False
 
 def get_random_amount():
     return round(random.uniform(config.MIN_AMOUNT, config.MAX_AMOUNT), 2)
 
-def run_bot(log_callback):
-    global running
-    running = True
+def run_account(account, log_callback):
+    client = Client(intent_key=account["key"])
 
     while running:
         try:
@@ -33,12 +26,12 @@ def run_bot(log_callback):
             fee = quote.get("fee", 0)
             price = quote.get("price", 0)
 
-            log_callback(f"Amount: {amount}")
-            log_callback(f"Price: {price}")
-            log_callback(f"Fee: {fee}")
+            log_callback(f"[{account['name']}] Amount: {amount}")
+            log_callback(f"[{account['name']}] Price: {price}")
+            log_callback(f"[{account['name']}] Fee: {fee}")
 
             if fee <= config.MAX_FEE:
-                log_callback("✅ Swap dieksekusi")
+                log_callback(f"[{account['name']}] ✅ SWAP")
 
                 tx = client.execute_swap(
                     from_token=config.FROM_TOKEN,
@@ -47,15 +40,23 @@ def run_bot(log_callback):
                     slippage=config.SLIPPAGE
                 )
 
-                log_callback(f"TX: {tx}")
-                time.sleep(10)
+                log_callback(f"[{account['name']}] TX: {tx}")
+
+                time.sleep(config.COOLDOWN_AFTER_SWAP)
             else:
-                log_callback("❌ Fee terlalu tinggi")
+                log_callback(f"[{account['name']}] ❌ Fee tinggi")
 
         except Exception as e:
-            log_callback(f"ERROR: {e}")
+            log_callback(f"[{account['name']}] ERROR: {e}")
 
         time.sleep(config.DELAY)
+
+def start_bot(log_callback):
+    global running
+    running = True
+
+    for acc in accounts.ACCOUNTS:
+        Thread(target=run_account, args=(acc, log_callback)).start()
 
 def stop_bot():
     global running
