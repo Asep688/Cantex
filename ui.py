@@ -2,14 +2,15 @@ import tkinter as tk
 from threading import Thread
 import bot
 import config
+import accounts
 
 def start():
-    thread = Thread(target=bot.run_bot, args=(log,))
-    thread.start()
+    Thread(target=bot.start_bot, args=(log,)).start()
+    log("🚀 Bot started")
 
 def stop():
     bot.stop_bot()
-    log("🛑 Bot dihentikan")
+    log("🛑 Bot stopped")
 
 def log(message):
     text.insert(tk.END, message + "\n")
@@ -19,13 +20,15 @@ def update_config():
     config.MAX_FEE = float(entry_fee.get())
     config.MIN_AMOUNT = float(entry_min.get())
     config.MAX_AMOUNT = float(entry_max.get())
-    log("⚙️ Config diupdate")
+    log("⚙️ Config updated")
 
-# UI
 root = tk.Tk()
-root.title("Cantex Auto Swap Bot")
+root.title("Cantex Multi Account Bot")
 
-# CONFIG FRAME
+# INFO AKUN
+tk.Label(root, text=f"Akun terdeteksi: {len(accounts.ACCOUNTS)}").pack()
+
+# CONFIG
 frame = tk.Frame(root)
 frame.pack(pady=10)
 
@@ -44,14 +47,14 @@ entry_max = tk.Entry(frame)
 entry_max.insert(0, str(config.MAX_AMOUNT))
 entry_max.grid(row=2, column=1)
 
-tk.Button(frame, text="Update Config", command=update_config).grid(row=3, columnspan=2, pady=5)
+tk.Button(frame, text="Update Config", command=update_config).grid(row=3, columnspan=2)
 
-# BUTTONS
-tk.Button(root, text="▶ Start Bot", command=start, bg="green").pack(pady=5)
-tk.Button(root, text="■ Stop Bot", command=stop, bg="red").pack(pady=5)
+# BUTTON
+tk.Button(root, text="▶ Start", command=start, bg="green").pack(pady=5)
+tk.Button(root, text="■ Stop", command=stop, bg="red").pack(pady=5)
 
 # LOG
-text = tk.Text(root, height=20, width=50)
+text = tk.Text(root, height=20, width=70)
 text.pack()
 
 root.mainloop()
