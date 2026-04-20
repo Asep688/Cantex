@@ -11,3 +11,5 @@ for key, value in os.environ.items():
             "name": key,
             "key": value
         })
+
+print("✅ Accounts loaded:", len(ACCOUNTS))
